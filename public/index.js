@@ -3,7 +3,8 @@ var characters = [
     {"name": "Dwarf"},
     {"name": "Troll"},
     {"name": "Orc"},
-    {"name": "Elf"}
+    {"name": "Elf"},
+    {"name": "Undead"},
 ];
 
 var WIAB = (function (document) {
@@ -20,7 +21,6 @@ WIAB.data = (function (document, WIAB) {
 
 WIAB.view = (function (document, WIAB) {
     var tabCharactersSelected = [];
-    
 	var renderCharacterList = (function (characters) {
 		var ul = document.getElementById('character-list');
 		characters.forEach(function (element, index, array) {
@@ -45,13 +45,13 @@ WIAB.view = (function (document, WIAB) {
             var bar = document.getElementsByClassName('bar-mood')[0]; // On récupère le premier car il n'y en a qu'un
             var name = element.parentElement.lastElementChild.textContent;
             var listCharacters = '';
-            if(element.checked == true) {
-                if(tabCharactersSelected.indexOf(name) == -1) {
+            if(element.checked === true) {
+                if(tabCharactersSelected.indexOf(name) === -1) {
                     tabCharactersSelected.push(name);
                 }
             }
-            if(element.checked == false) {
-                if(tabCharactersSelected.indexOf(name) != -1) {
+            if(element.checked === false) {
+                if(tabCharactersSelected.indexOf(name) !== -1) {
                     tabCharactersSelected.splice(tabCharactersSelected.indexOf(name), 1);
                 }
             }
@@ -59,10 +59,10 @@ WIAB.view = (function (document, WIAB) {
                 listCharacters = [listCharacters, [value, ' '].join('')].join('');
             });
             bar.innerHTML = listCharacters;
-            if(tabCharactersSelected.length == 0) {
-                bar.innerHTML = 'Nothing selected';
+            if(tabCharactersSelected.length === 0) {
+                bar.innerHTML = 'Nothing selected... STOP BE A NOOB !';
             }
-            if(tabCharactersSelected.length == 1) {
+            if(tabCharactersSelected.length === 1) {
                 bar.innerHTML = [listCharacters, 'walks into a bar'].join('');
             }
             if(tabCharactersSelected.length > 1) {
@@ -70,7 +70,6 @@ WIAB.view = (function (document, WIAB) {
             }
         });
     });
-    
     return {renderCharacterList : renderCharacterList};
 })(document, WIAB);
 
@@ -79,6 +78,23 @@ WIAB.boot = function boot () {
 	var view = WIAB.view.renderCharacterList(data);
 };
 
+WIAB.stop = (function () {
+    var detachListEvent = (function () {
+        var allTagsInput = document.getElementsByTagName('input');
+        allTagsInput.forEach(function (element) {
+            element.removeEventListener('click', function() {
+                // faire quelque chose mais quoi ?
+                console.log("détachement de listener");
+            });
+        });
+    });
+    return {detachListEvent : detachListEvent};
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     WIAB.boot();
+});
+
+document.addEventListener('beforeunload ', function() {
+    WIAB.stop.detachListEvent;
 });
