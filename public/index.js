@@ -9,6 +9,7 @@ var characters = [
 
 var WIAB = (function (document) {
     var WIAB = {};
+    
     return WIAB;
 })(document);
 
@@ -16,13 +17,16 @@ WIAB.data = (function (document, WIAB) {
 	var getCharacters = (function () {
 		return characters;
 	});
+    
 	return {getCharactersList : getCharacters};
-})(document, WIAB);
+})(document, WIAB);    
 
 WIAB.view = (function (document, WIAB) {
     var tabCharactersSelected = [];
+
 	var renderCharacterList = (function (characters) {
 		var ul = document.getElementById('character-list');
+        var nbLi = 0;
 		characters.forEach(function (element, index, array) {
 			var li = document.createElement('li');
 			var text = document.createTextNode(element.name);
@@ -31,17 +35,19 @@ WIAB.view = (function (document, WIAB) {
 			input.setAttribute('type','checkbox');
 			input.setAttribute('name','character-id');
 			input.setAttribute('value','10');
-			input.setAttribute('id','character-id');
+			input.setAttribute('id','character-id-' + nbLi);
 			label.setAttribute('for','character-id');
 			label.appendChild(text);
 			ul.appendChild(li);
 			li.appendChild(input);
 			li.appendChild(label);
 			attachListEvents(input);
+            nbLi = nbLi + 1;
 		});
 	});
-	var attachListEvents = (function attachListEvents(element) {
-		element.addEventListener('click', function() {
+
+    function functionOnEvent() {
+            var element = this;
             var bar = document.getElementsByClassName('bar-mood')[0]; // On récupère le premier car il n'y en a qu'un
             var name = element.parentElement.lastElementChild.textContent;
             var listCharacters = '';
@@ -68,33 +74,36 @@ WIAB.view = (function (document, WIAB) {
             if(tabCharactersSelected.length > 1) {
                 bar.innerHTML = [listCharacters, 'walk into a bar'].join('');
             }
+        };
+
+	var attachListEvents = (function () {
+        var listElement = document.getElementsByTagName('input');
+        Array.prototype.forEach.call(listElement, function (element) {
+            element.addEventListener('click', functionOnEvent, false);
         });
     });
-    return {renderCharacterList : renderCharacterList};
+
+    var detachListEvents = (function () {
+        var listElement = document.getElementsByTagName('input');
+        Array.prototype.forEach.call(listElement, function (element) {
+            console.log("detache");
+            element.removeEventListener('click', functionOnEvent, false);
+        });
+    });
+
+    return {renderCharacterList : renderCharacterList, detachListEvents : detachListEvents};
 })(document, WIAB);
 
 WIAB.boot = function boot () {
 	var data = WIAB.data.getCharactersList();
-	var view = WIAB.view.renderCharacterList(data);
+	WIAB.view.renderCharacterList(data);
 };
-
-WIAB.stop = (function () {
-    var detachListEvent = (function () {
-        var allTagsInput = document.getElementsByTagName('input');
-        allTagsInput.forEach(function (element) {
-            element.removeEventListener('click', function() {
-                // faire quelque chose mais quoi ?
-                console.log("détachement de listener");
-            });
-        });
-    });
-    return {detachListEvent : detachListEvent};
-});
 
 document.addEventListener('DOMContentLoaded', function() {
     WIAB.boot();
 });
 
 document.addEventListener('beforeunload ', function() {
-    WIAB.stop.detachListEvent;
+    WIAB.view.detachListEvents();
 });
+
