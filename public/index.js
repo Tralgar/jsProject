@@ -14,11 +14,32 @@ var WIAB = (function (document) {
 })(document);
 
 WIAB.data = (function (document, WIAB) {
-	var getCharacters = (function () {
-		return characters;
-	});
+    function getCharacters() {
+        return characters;
+    }
+
+    function getCharactersList(url) {
+        var promise = new Promise(function(resolve, reject) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    resolve(xhr.response);
+                }
+                else {
+                    reject(getCharacters());
+                }
+            };
+            xhr.onerror = function() { // Si error, on prend le tableau local
+                reject(getCharacters());
+            };
+            xhr.send();
+        });
     
-	return {getCharactersList : getCharacters};
+        return promise;
+    };
+    
+	return {getCharactersList : getCharactersList};
 })(document, WIAB);    
 
 WIAB.view = (function (document, WIAB) {
@@ -47,34 +68,34 @@ WIAB.view = (function (document, WIAB) {
 	});
 
     function functionOnEvent() {
-            var element = this;
-            var bar = document.getElementsByClassName('bar-mood')[0]; // On récupère le premier car il n'y en a qu'un
-            var name = element.parentElement.lastElementChild.textContent;
-            var listCharacters = '';
-            if(element.checked === true) {
-                if(tabCharactersSelected.indexOf(name) === -1) {
-                    tabCharactersSelected.push(name);
-                }
+        var element = this;
+        var bar = document.getElementsByClassName('bar-mood')[0]; // On récupère le premier car il n'y en a qu'un
+        var name = element.parentElement.lastElementChild.textContent;
+        var listCharacters = '';
+        if(element.checked === true) {
+            if(tabCharactersSelected.indexOf(name) === -1) {
+                tabCharactersSelected.push(name);
             }
-            if(element.checked === false) {
-                if(tabCharactersSelected.indexOf(name) !== -1) {
-                    tabCharactersSelected.splice(tabCharactersSelected.indexOf(name), 1);
-                }
+        }
+        if(element.checked === false) {
+            if(tabCharactersSelected.indexOf(name) !== -1) {
+                tabCharactersSelected.splice(tabCharactersSelected.indexOf(name), 1);
             }
-            tabCharactersSelected.forEach(function (value) {
-                listCharacters = [listCharacters, [value, ' '].join('')].join('');
-            });
-            bar.innerHTML = listCharacters;
-            if(tabCharactersSelected.length === 0) {
-                bar.innerHTML = 'Nothing selected... STOP BE A NOOB !';
-            }
-            if(tabCharactersSelected.length === 1) {
-                bar.innerHTML = [listCharacters, 'walks into a bar'].join('');
-            }
-            if(tabCharactersSelected.length > 1) {
-                bar.innerHTML = [listCharacters, 'walk into a bar'].join('');
-            }
-        };
+        }
+        tabCharactersSelected.forEach(function (value) {
+            listCharacters = [listCharacters, [value, ' '].join('')].join('');
+        });
+        bar.innerHTML = listCharacters;
+        if(tabCharactersSelected.length === 0) {
+            bar.innerHTML = 'Nothing selected... STOP BE A NOOB !';
+        }
+        if(tabCharactersSelected.length === 1) {
+            bar.innerHTML = [listCharacters, 'walks into a bar'].join('');
+        }
+        if(tabCharactersSelected.length > 1) {
+            bar.innerHTML = [listCharacters, 'walk into a bar'].join('');
+        }
+    };
 
 	var attachListEvents = (function () {
         var listElement = document.getElementsByTagName('input');
@@ -95,8 +116,9 @@ WIAB.view = (function (document, WIAB) {
 })(document, WIAB);
 
 WIAB.boot = function boot () {
-	var data = WIAB.data.getCharactersList();
-	WIAB.view.renderCharacterList(data);
+	var data = WIAB.data.getCharactersList("http://edu.muetton.me/characters").then(JSON.parse);
+    console.log(data);
+	// WIAB.view.renderCharacterList(data);
 };
 
 document.addEventListener('DOMContentLoaded', function() {
