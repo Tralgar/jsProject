@@ -116,9 +116,11 @@ WIAB.view = (function (document, WIAB) {
 })(document, WIAB);
 
 WIAB.boot = function boot () {
-	var data = WIAB.data.getCharactersList("http://edu.muetton.me/characters").then(JSON.parse);
-    console.log(data);
-	// WIAB.view.renderCharacterList(data);
+	var data = WIAB.data.getCharactersList("http://edu.muetton.me/characters").then(function (value) {
+        return JSON.parse(value);
+    }).then(function(value) {
+        WIAB.view.renderCharacterList(value);
+    });
 };
 
 document.addEventListener('DOMContentLoaded', function() {
